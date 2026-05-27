@@ -18,16 +18,14 @@ import (
 
 // Evaluate given parameter with given expression in gval full language
 func Evaluate(expression string, parameter interface{}, opts ...Language) (interface{}, error) {
-	return EvaluateWithContext(context.Background(), expression, parameter, opts...)
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 // Evaluate given parameter with given expression in gval full language using a context
 func EvaluateWithContext(c context.Context, expression string, parameter interface{}, opts ...Language) (interface{}, error) {
-	l := full
-	if len(opts) > 0 {
-		l = NewLanguage(append([]Language{l}, opts...)...)
-	}
-	return l.EvaluateWithContext(c, expression, parameter)
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 // Full is the union of Arithmetic, Bitmask, Text, PropositionalLogic, TernaryOperator, and Json
@@ -36,87 +34,101 @@ func EvaluateWithContext(c context.Context, expression string, parameter interfa
 //	Operator ??: a ?? b returns a if a is not false or nil, otherwise n
 //
 // Function Date: Date(a) parses string a. a must match RFC3339, ISO8601, ruby date, or unix date
-func Full(extensions ...Language) Language {
-	if len(extensions) == 0 {
-		return full
-	}
-	return NewLanguage(append([]Language{full}, extensions...)...)
-}
+func Full(extensions ...Language) Language { _ = "STUB: not implemented"; return *new(Language) }
 
 // TernaryOperator contains following Operator
 //
 //	?: a ? b : c returns b if bool a is true, otherwise b
 func TernaryOperator() Language {
-	return ternaryOperator
+	_ = "STUB: not implemented"
+	return *
+
+	// Arithmetic contains base, plus(+), minus(-), divide(/), power(**), negative(-)
+	// and numerical order (<=,<,>,>=)
+	//
+	// Arithmetic operators expect float64 operands.
+	// Called with unfitting input, they try to convert the input to float64.
+	// They can parse strings and convert any type of int or float.
+	new(Language)
 }
 
-// Arithmetic contains base, plus(+), minus(-), divide(/), power(**), negative(-)
-// and numerical order (<=,<,>,>=)
-//
-// Arithmetic operators expect float64 operands.
-// Called with unfitting input, they try to convert the input to float64.
-// They can parse strings and convert any type of int or float.
 func Arithmetic() Language {
-	return arithmetic
+	_ = "STUB: not implemented"
+
+	// DecimalArithmetic contains base, plus(+), minus(-), divide(/), power(**), negative(-)
+	// and numerical order (<=,<,>,>=)
+	//
+	// DecimalArithmetic operators expect decimal.Decimal operands (github.com/shopspring/decimal)
+	// and are used to calculate money/decimal rather than floating point calculations.
+	// Called with unfitting input, they try to convert the input to decimal.Decimal.
+	// They can parse strings and convert any type of int or float.
+	return *new(Language)
 }
 
-// DecimalArithmetic contains base, plus(+), minus(-), divide(/), power(**), negative(-)
-// and numerical order (<=,<,>,>=)
-//
-// DecimalArithmetic operators expect decimal.Decimal operands (github.com/shopspring/decimal)
-// and are used to calculate money/decimal rather than floating point calculations.
-// Called with unfitting input, they try to convert the input to decimal.Decimal.
-// They can parse strings and convert any type of int or float.
 func DecimalArithmetic() Language {
-	return decimalArithmetic
+	_ = "STUB: not implemented"
+	return *
+
+	// Bitmask contains base, bitwise and(&), bitwise or(|) and bitwise not(^).
+	//
+	// Bitmask operators expect float64 operands.
+	// Called with unfitting input they try to convert the input to float64.
+	// They can parse strings and convert any type of int or float.
+	new(Language)
 }
 
-// Bitmask contains base, bitwise and(&), bitwise or(|) and bitwise not(^).
-//
-// Bitmask operators expect float64 operands.
-// Called with unfitting input they try to convert the input to float64.
-// They can parse strings and convert any type of int or float.
 func Bitmask() Language {
-	return bitmask
+	_ = "STUB: not implemented"
+
+	// Text contains base, lexical order on strings (<=,<,>,>=),
+	// regex match (=~) and regex not match (!~)
+	return *new(Language)
 }
 
-// Text contains base, lexical order on strings (<=,<,>,>=),
-// regex match (=~) and regex not match (!~)
 func Text() Language {
-	return text
+	_ = "STUB: not implemented"
+
+	// PropositionalLogic contains base, not(!), and (&&), or (||) and Base.
+	//
+	// Propositional operator expect bool operands.
+	// Called with unfitting input they try to convert the input to bool.
+	// Numbers other than 0 and the strings "TRUE" and "true" are interpreted as true.
+	// 0 and the strings "FALSE" and "false" are interpreted as false.
+	return *new(Language)
 }
 
-// PropositionalLogic contains base, not(!), and (&&), or (||) and Base.
-//
-// Propositional operator expect bool operands.
-// Called with unfitting input they try to convert the input to bool.
-// Numbers other than 0 and the strings "TRUE" and "true" are interpreted as true.
-// 0 and the strings "FALSE" and "false" are interpreted as false.
 func PropositionalLogic() Language {
-	return propositionalLogic
+	_ = "STUB: not implemented"
+	return *
+
+	// JSON contains json objects ({string:expression,...})
+	// and json arrays ([expression, ...])
+	new(Language)
 }
 
-// JSON contains json objects ({string:expression,...})
-// and json arrays ([expression, ...])
 func JSON() Language {
-	return ljson
+	_ = "STUB: not implemented"
+
+	// Parentheses contains support for parentheses.
+	return *new(Language)
 }
 
-// Parentheses contains support for parentheses.
 func Parentheses() Language {
-	return parentheses
+	_ = "STUB: not implemented"
+
+	// Ident contains support for variables and functions.
+	return *new(Language)
 }
 
-// Ident contains support for variables and functions.
 func Ident() Language {
-	return ident
+	_ = "STUB: not implemented"
+
+	// Base contains equal (==) and not equal (!=), perentheses and general support for variables, constants and functions
+	// It contains true, false, (floating point) number, string  ("" or “) and char (”) constants
+	return *new(Language)
 }
 
-// Base contains equal (==) and not equal (!=), perentheses and general support for variables, constants and functions
-// It contains true, false, (floating point) number, string  ("" or “) and char (”) constants
-func Base() Language {
-	return base
-}
+func Base() Language { _ = "STUB: not implemented"; return *new(Language) }
 
 var full = NewLanguage(arithmetic, bitmask, text, propositionalLogic, ljson,
 

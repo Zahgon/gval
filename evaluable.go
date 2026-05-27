@@ -2,10 +2,7 @@ package gval
 
 import (
 	"context"
-	"fmt"
 	"reflect"
-	"regexp"
-	"strconv"
 )
 
 // Selector allows for custom variable selection from structs
@@ -20,69 +17,38 @@ type Evaluable func(c context.Context, parameter interface{}) (interface{}, erro
 
 // EvalInt evaluates given parameter to an int
 func (e Evaluable) EvalInt(c context.Context, parameter interface{}) (int, error) {
-	v, err := e(c, parameter)
-	if err != nil {
-		return 0, err
-	}
-
-	f, ok := convertToFloat(v)
-	if !ok {
-		return 0, fmt.Errorf("expected number but got %v (%T)", v, v)
-	}
-	return int(f), nil
+	_ = "STUB: not implemented"
+	return 0, nil
 }
 
 // EvalFloat64 evaluates given parameter to a float64
 func (e Evaluable) EvalFloat64(c context.Context, parameter interface{}) (float64, error) {
-	v, err := e(c, parameter)
-	if err != nil {
-		return 0, err
-	}
-
-	f, ok := convertToFloat(v)
-	if !ok {
-		return 0, fmt.Errorf("expected number but got %v (%T)", v, v)
-	}
-	return f, nil
+	_ = "STUB: not implemented"
+	return 0, nil
 }
 
 // EvalBool evaluates given parameter to a bool
 func (e Evaluable) EvalBool(c context.Context, parameter interface{}) (bool, error) {
-	v, err := e(c, parameter)
-	if err != nil {
-		return false, err
-	}
-
-	b, ok := convertToBool(v)
-	if !ok {
-		return false, fmt.Errorf("expected bool but got %v (%T)", v, v)
-	}
-	return b, nil
+	_ = "STUB: not implemented"
+	return false, nil
 }
 
 // EvalString evaluates given parameter to a string
 func (e Evaluable) EvalString(c context.Context, parameter interface{}) (string, error) {
-	o, err := e(c, parameter)
-	if err != nil {
-		return "", err
-	}
-	if s, ok := o.(string); ok {
-		return s, nil
-	}
-	return fmt.Sprintf("%v", o), nil
+	_ = "STUB: not implemented"
+	return "", nil
 }
 
 // Const Evaluable represents given constant
 func (*Parser) Const(value interface{}) Evaluable {
-	return constant(value)
+	_ = "STUB: not implemented"
+	return *
+
+	//go:noinline
+	new(Evaluable)
 }
 
-//go:noinline
-func constant(value interface{}) Evaluable {
-	return func(c context.Context, v interface{}) (interface{}, error) {
-		return value, nil
-	}
-}
+func constant(value interface{}) Evaluable { _ = "STUB: not implemented"; return *new(Evaluable) }
 
 // Var Evaluable represents value at given path.
 // It supports with default language VariableSelector:
@@ -95,10 +61,8 @@ func constant(value interface{}) Evaluable {
 //		slices and
 //	 map with int or string key.
 func (p *Parser) Var(path ...Evaluable) Evaluable {
-	if p.selector == nil {
-		return variable(path)
-	}
-	return p.selector(path)
+	_ = "STUB: not implemented"
+	return *new(Evaluable)
 }
 
 // Evaluables is a slice of Evaluable.
@@ -106,261 +70,50 @@ type Evaluables []Evaluable
 
 // EvalStrings evaluates given parameter to a string slice
 func (evs Evaluables) EvalStrings(c context.Context, parameter interface{}) ([]string, error) {
-	strs := make([]string, len(evs))
-	for i, p := range evs {
-		k, err := p.EvalString(c, parameter)
-		if err != nil {
-			return nil, err
-		}
-		strs[i] = k
-	}
-	return strs, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
-func variable(path Evaluables) Evaluable {
-	return func(c context.Context, v interface{}) (interface{}, error) {
-		v2 := v
-		for _, p := range path {
-			k, err := p.EvalString(c, v)
-			if err != nil {
-				return nil, err
-			}
-			switch o := v2.(type) {
-			case Selector:
-				v2, err = o.SelectGVal(c, k)
-				if err != nil {
-					return nil, fmt.Errorf("failed to select '%s' on %T: %w", k, o, err)
-				}
-				continue
-			case map[interface{}]interface{}:
-				v2 = o[k]
-				continue
-			case map[string]interface{}:
-				v2 = o[k]
-				continue
-			case []interface{}:
-				if i, err := strconv.Atoi(k); err == nil && i >= 0 && len(o) > i {
-					v2 = o[i]
-					continue
-				}
-			default:
-				var ok bool
-				v2, ok = reflectSelect(k, o)
-				if !ok {
-					return nil, fmt.Errorf("unknown parameter '%s' on %T", k, o)
-				}
-			}
-		}
-		return v2, nil
-	}
-}
+func variable(path Evaluables) Evaluable { _ = "STUB: not implemented"; return *new(Evaluable) }
 
 func reflectSelect(key string, value interface{}) (selection interface{}, ok bool) {
-	vv := reflect.ValueOf(value)
-	vvElem := resolvePotentialPointer(vv)
-
-	switch vvElem.Kind() {
-	case reflect.Map:
-		mapKey, ok := reflectConvertTo(vv.Type().Key().Kind(), key)
-		if !ok {
-			return nil, false
-		}
-
-		vvElem = vv.MapIndex(reflect.ValueOf(mapKey))
-		vvElem = resolvePotentialPointer(vvElem)
-
-		if vvElem.IsValid() {
-			return vvElem.Interface(), true
-		}
-
-		// key didn't exist. Check if there is a bound method
-		method := vv.MethodByName(key)
-		if method.IsValid() {
-			return method.Interface(), true
-		}
-
-	case reflect.Slice:
-		if i, err := strconv.Atoi(key); err == nil && i >= 0 && vv.Len() > i {
-			vvElem = resolvePotentialPointer(vv.Index(i))
-			return vvElem.Interface(), true
-		}
-
-		// key not an int. Check if there is a bound method
-		method := vv.MethodByName(key)
-		if method.IsValid() {
-			return method.Interface(), true
-		}
-
-	case reflect.Struct:
-		field := vvElem.FieldByName(key)
-		if field.IsValid() {
-			return field.Interface(), true
-		}
-
-		method := vv.MethodByName(key)
-		if method.IsValid() {
-			return method.Interface(), true
-		}
-	}
+	_ = "STUB: not implemented"
 	return nil, false
 }
 
+// key didn't exist. Check if there is a bound method
+
+// key not an int. Check if there is a bound method
+
 func resolvePotentialPointer(value reflect.Value) reflect.Value {
-	if value.Kind() == reflect.Ptr {
-		return value.Elem()
-	}
-	return value
+	_ = "STUB: not implemented"
+	return *new(reflect.Value)
 }
 
 func reflectConvertTo(k reflect.Kind, value string) (interface{}, bool) {
-	switch k {
-	case reflect.String:
-		return value, true
-	case reflect.Int:
-		if i, err := strconv.Atoi(value); err == nil {
-			return i, true
-		}
-	}
+	_ = "STUB: not implemented"
 	return nil, false
 }
 
 func (*Parser) callFunc(fun function, args ...Evaluable) Evaluable {
-	return func(c context.Context, v interface{}) (ret interface{}, err error) {
-		a := make([]interface{}, len(args))
-		for i, arg := range args {
-			ai, err := arg(c, v)
-			if err != nil {
-				return nil, err
-			}
-			a[i] = ai
-		}
-		return fun(c, a...)
-	}
+	_ = "STUB: not implemented"
+	return *new(Evaluable)
 }
 
 func (*Parser) callEvaluable(fullname string, fun Evaluable, args ...Evaluable) Evaluable {
-	return func(c context.Context, v interface{}) (ret interface{}, err error) {
-		f, err := fun(c, v)
-
-		if err != nil {
-			return nil, fmt.Errorf("could not call function: %w", err)
-		}
-
-		defer func() {
-			if r := recover(); r != nil {
-				err = fmt.Errorf("failed to execute function '%s': %s", fullname, r)
-				ret = nil
-			}
-		}()
-
-		ff := reflect.ValueOf(f)
-
-		if ff.Kind() != reflect.Func {
-			return nil, fmt.Errorf("could not call '%s' type %T", fullname, f)
-		}
-
-		a := make([]reflect.Value, len(args))
-		for i := range args {
-			arg, err := args[i](c, v)
-			if err != nil {
-				return nil, err
-			}
-			a[i] = reflect.ValueOf(arg)
-		}
-
-		rr := ff.Call(a)
-
-		r := make([]interface{}, len(rr))
-		for i, e := range rr {
-			r[i] = e.Interface()
-		}
-
-		errorInterface := reflect.TypeOf((*error)(nil)).Elem()
-		if len(r) > 0 && ff.Type().Out(len(r)-1).Implements(errorInterface) {
-			if r[len(r)-1] != nil {
-				err = r[len(r)-1].(error)
-			}
-			r = r[0 : len(r)-1]
-		}
-
-		switch len(r) {
-		case 0:
-			return err, nil
-		case 1:
-			return r[0], err
-		default:
-			return r, err
-		}
-	}
+	_ = "STUB: not implemented"
+	return *new(Evaluable)
 }
 
 // IsConst returns if the Evaluable is a Parser.Const() value
-func (e Evaluable) IsConst() bool {
-	pc := reflect.ValueOf(constant(nil)).Pointer()
-	pe := reflect.ValueOf(e).Pointer()
-	return pc == pe
-}
+func (e Evaluable) IsConst() bool { _ = "STUB: not implemented"; return false }
 
 func regEx(a, b Evaluable) (Evaluable, error) {
-	if !b.IsConst() {
-		return func(c context.Context, o interface{}) (interface{}, error) {
-			a, err := a.EvalString(c, o)
-			if err != nil {
-				return nil, err
-			}
-			b, err := b.EvalString(c, o)
-			if err != nil {
-				return nil, err
-			}
-			matched, err := regexp.MatchString(b, a)
-			return matched, err
-		}, nil
-	}
-	s, err := b.EvalString(context.TODO(), nil)
-	if err != nil {
-		return nil, err
-	}
-	regex, err := regexp.Compile(s)
-	if err != nil {
-		return nil, err
-	}
-	return func(c context.Context, v interface{}) (interface{}, error) {
-		s, err := a.EvalString(c, v)
-		if err != nil {
-			return nil, err
-		}
-		return regex.MatchString(s), nil
-	}, nil
+	_ = "STUB: not implemented"
+	return *new(Evaluable), nil
 }
 
 func notRegEx(a, b Evaluable) (Evaluable, error) {
-	if !b.IsConst() {
-		return func(c context.Context, o interface{}) (interface{}, error) {
-			a, err := a.EvalString(c, o)
-			if err != nil {
-				return nil, err
-			}
-			b, err := b.EvalString(c, o)
-			if err != nil {
-				return nil, err
-			}
-			matched, err := regexp.MatchString(b, a)
-			return !matched, err
-		}, nil
-	}
-	s, err := b.EvalString(context.TODO(), nil)
-	if err != nil {
-		return nil, err
-	}
-	regex, err := regexp.Compile(s)
-	if err != nil {
-		return nil, err
-	}
-	return func(c context.Context, v interface{}) (interface{}, error) {
-		s, err := a.EvalString(c, v)
-		if err != nil {
-			return nil, err
-		}
-		return !regex.MatchString(s), nil
-	}, nil
+	_ = "STUB: not implemented"
+	return *new(Evaluable), nil
 }
